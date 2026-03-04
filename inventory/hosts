@@ -1,0 +1,11 @@
+[all:vars]
+ansible_user=your_user
+# ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+[debian]
+# ubuntu-host ansible_host=192.168.1.10
+# debian-host ansible_host=192.168.1.11
+
+[rhel]
+# centos-host ansible_host=192.168.1.20
+# rhel-host  ansible_host=192.168.1.21
