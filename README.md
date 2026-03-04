@@ -20,7 +20,7 @@ An Ansible playbook that automates system package updates across Linux hosts, wi
 
 1. Clone the repo
    ```bash
-   git clone https://github.com/<your-username>/ansible-updates.git
+   git clone https://github.com/kevinmrr/ansible-updates.git
    cd ansible-updates
    ```
 
