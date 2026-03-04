@@ -1,0 +1,69 @@
+---
+- name: Check for and install system updates
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    reboot_message: "Rebooting to apply system updates"
+    reboot_timeout_seconds: 300
+
+  tasks:
+    - name: Update apt cache and upgrade packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+        cache_valid_time: 3600
+      when: ansible_facts['pkg_mgr'] == 'apt'
+      tags: debian
+
+    - name: Upgrade all packages (RHEL/CentOS 7 / Amazon Linux)
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+        update_cache: true
+      when: ansible_facts['pkg_mgr'] == 'yum'
+      tags: rhel
+
+    - name: Upgrade all packages (Fedora / RHEL 8+)
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+      when: ansible_facts['pkg_mgr'] == 'dnf'
+      tags: rhel
+
+    - name: Check if a reboot is required (Debian/Ubuntu)
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+      when: ansible_facts['pkg_mgr'] == 'apt'
+      tags: debian
+
+    - name: Reboot if required (Debian/Ubuntu)
+      ansible.builtin.reboot:
+        msg: "{{ reboot_message }}"
+        reboot_timeout: "{{ reboot_timeout_seconds }}"
+      when:
+        - ansible_facts['pkg_mgr'] == 'apt'
+        - reboot_required_file.stat is defined
+        - reboot_required_file.stat.exists
+      tags: debian
+
+    - name: Check if a reboot is required (RHEL/CentOS/Fedora)
+      ansible.builtin.command: needs-restarting -r
+      register: needs_restarting
+      changed_when: false
+      failed_when: needs_restarting.rc not in [0, 1]
+      when: ansible_facts['pkg_mgr'] in ['yum', 'dnf']
+      tags: rhel
+
+    - name: Reboot if required (RHEL/CentOS/Fedora)
+      ansible.builtin.reboot:
+        msg: "{{ reboot_message }}"
+        reboot_timeout: "{{ reboot_timeout_seconds }}"
+      when:
+        - ansible_facts['pkg_mgr'] in ['yum', 'dnf']
+        - needs_restarting is defined
+        - needs_restarting.rc == 1
+      tags: rhel
