@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# Global variables applied to every host in this inventory
+# ---------------------------------------------------------------------------
+[all:vars]
+ansible_user=deploy
+ansible_ssh_private_key_file=~/.ssh/id_ed25519  
+ansible_python_interpreter=/usr/bin/python3  
+
+# ---------------------------------------------------------------------------
+# Debian / Ubuntu hosts
+# ---------------------------------------------------------------------------
+[debian]
+ubuntu-web-01      ansible_host=192.0.2.10   # Replace with your actual host
+ubuntu-web-02      ansible_host=192.0.2.11
+debian-db-01       ansible_host=192.0.2.12
+
+# ---------------------------------------------------------------------------
+# RHEL / CentOS / Fedora hosts
+# ---------------------------------------------------------------------------
+[rhel]
+rhel-app-01        ansible_host=192.0.2.20   # Replace with your actual host
+centos-app-02      ansible_host=192.0.2.21
+
+[webservers:children]
+debian
+
+[dbservers:children]
+rhel
+
+[webservers:vars]
+http_port=80
+https_port=443
